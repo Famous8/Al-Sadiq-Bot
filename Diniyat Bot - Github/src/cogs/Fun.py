@@ -1,10 +1,9 @@
-from __future__ import unicode_literals
 from discord.ext import commands
 import random
 import discord
 import asyncio
-import aiohttp
-import json
+import praw
+
 
 class Fun(commands.Cog):
     def __init__(self, bot):
@@ -45,33 +44,35 @@ class Fun(commands.Cog):
 
     @commands.command(aliases=["facepalm"])
     async def fp(self, ctx):
-        async with aiohttp.ClientSession() as session:
-            async with session.get(f"https://www.reddit.com/r/facepalm/top.json") as response:
-                j = await response.json()
-
-        data = j["data"]["children"][random.randint(0, 1)]["data"]
-        image_url = data["url"]
-        title = data["title"]
-        em = discord.Embed(description=f"[**{title}**]({image_url})", colour=discord.Colour.dark_green())
-        em.set_image(url=image_url)
+        reddit = praw.Reddit(client_id='CLIENT ID', client_secret='CLIENT SECRET', user_agent='hello world')
+        submission = reddit.subreddit("facepalm").random()
+        em = discord.Embed(description=f"[**{submission.title}**]({submission.url})",
+                           colour=discord.Colour.dark_green())
+        em.set_image(url=submission.url)
         em.set_footer(icon_url=ctx.author.avatar_url, text=f"Requested by {ctx.author}")
         await ctx.send(embed=em)
 
 
-    @commands.command(aliases=["halalmemes", "shiamemes"])
+    @commands.command(aliases=["halalmemes", "shiamemes", 'halalmeme', 'memes', 'shiameme'])
     async def meme(self, ctx):
-        async with aiohttp.ClientSession() as session:
-            async with session.get(f"https://www.reddit.com/r/shiamemes/top.json") as response:
-                j = await response.json()
-
-        data = j["data"]["children"]["data"]
-        image_url = data["url"]
-        title = data["title"]
-        em = discord.Embed(description=f"[**{title}**]({image_url})", colour=discord.Colour.dark_green())
-        em.set_image(url=image_url)
+        reddit = praw.Reddit(client_id='CLIENT ID', client_secret='CLIENT SECRET', user_agent='hello world')
+        submission = reddit.subreddit("shiamemes").random()
+        em = discord.Embed(description=f"[**{submission.title}**]({submission.url})", colour=discord.Colour.dark_green())
+        em.set_image(url=submission.url)
         em.set_footer(icon_url=ctx.author.avatar_url, text=f"Requested by {ctx.author}")
         await ctx.send(embed=em)
 
+    @commands.command(aliases=["randommeme", "random_meme", "randommemes", "random_memes"])
+    async def rm(self, ctx):
+        reddit = praw.Reddit(client_id='CLIENT ID', client_secret='CLIENT SECRET', user_agent='hello world')
+        subs = ['halalmemes', 'shiamemes', 'memes']
+        meme = random.choice(subs)
+        submission = reddit.subreddit(meme).random()
+        em = discord.Embed(description=f"[**{submission.title}**]({submission.url})",
+                           colour=discord.Colour.dark_green())
+        em.set_image(url=submission.url)
+        em.set_footer(icon_url=ctx.author.avatar_url, text=f"Requested by {ctx.author}")
+        await ctx.send(embed=em)
 
     @commands.command(aliases=['Ko', 'ko'])
     async def KO(self, ctx, member):
